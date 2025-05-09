@@ -1,7 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import pygame
-import time
 
 def load_quizzes(filename):
     with open(filename, "r") as file:
