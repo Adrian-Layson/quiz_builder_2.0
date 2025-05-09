@@ -28,4 +28,4 @@ with open("quiz_entries.txt", "a") as file:
     for q in quizzes:
         file.write(q)
 
-print("Quiz saved to quiz_entries.txt")
+print("Quiz saved into quiz_entries.txt")
