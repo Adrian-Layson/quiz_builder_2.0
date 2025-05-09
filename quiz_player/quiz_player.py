@@ -34,20 +34,17 @@ class QuizApp:
         self.root = root
         self.root.title("Cool Quiz Player")
         self.root.geometry("600x500")
-        
         self.canvas = tk.Canvas(root, width=600, height=500, highlightthickness=0)
         self.canvas.pack(fill=tk.BOTH, expand=True)
         self.draw_gradient()
-
         self.quizzes = quizzes
         self.q_index = 0
         self.score = 0
         self.selected = tk.StringVar()
-
+        self.answered = False
         self.title_font = ("Segoe UI", 20, "bold")
         self.question_font = ("Segoe UI", 14, "bold")
         self.option_font = ("Segoe UI", 12)
-
         self.setup_audio()
         self.create_styles()
         self.create_welcome_screen()
@@ -91,100 +88,45 @@ class QuizApp:
         self.style.configure("TProgressbar", thickness=15, troughcolor="#e0f7fa", background="#00acc1")
         self.style.configure("TButton", font=("Segoe UI", 12, "bold"), padding=8, background="#00838f", foreground="white")
         self.style.map("TButton", background=[("active", "#006064"), ("pressed", "#004d40")])
+        self.style.configure("Black.TButton", font=("Segoe UI", 12, "bold"), padding=8, foreground="black")
 
     def create_welcome_screen(self):
         self.welcome_frame = tk.Frame(self.canvas, bg="white", bd=2, relief=tk.RIDGE)
-        self.canvas.create_window(300, 250, window=self.welcome_frame, width=550, height=450)
-
-        tk.Label(
-            self.welcome_frame,
-            text="Welcome to the Maangas Quiz!",
-            font=self.title_font,
-            bg="white",
-            fg="#006666"
-        ).pack(pady=100)
-
-        ttk.Button(
-            self.welcome_frame,
-            text="Start Game",
-            command=self.start_game
-        ).pack(pady=10)
+        self.canvas.create_window(300, 250, window=self.welcome_frame, width=400, height=300)
+        tk.Label(self.welcome_frame, text="Welcome to Maangas naw Quiz!", font=self.title_font, bg="white", fg="#006666").pack(pady=30)
+        start_button = ttk.Button(self.welcome_frame, text="Start Game", command=self.start_game, style="Black.TButton")
+        start_button.pack(pady=10)
 
     def start_game(self):
         self.welcome_frame.destroy()
-        self.create_quiz_screen()
+        self.create_quiz_interface()
         self.load_question()
 
-    def create_quiz_screen(self):
+    def create_quiz_interface(self):
         self.main_frame = tk.Frame(self.canvas, bg="white", bd=2, relief=tk.RIDGE)
         self.canvas.create_window(300, 250, window=self.main_frame, width=550, height=450)
-
-        tk.Label(
-            self.main_frame,
-            text="🌟 Quiz Time 🌟",
-            font=self.title_font,
-            bg="white", fg="#006666"
-        ).pack(pady=20)
-
-        self.question_label = tk.Label(
-            self.main_frame,
-            text="",
-            font=self.question_font,
-            bg="white", fg="#333",
-            wraplength=500,
-            justify="center",
-            relief=tk.GROOVE,
-            bd=2,
-            padx=10,
-            pady=10
-        )
+        tk.Label(self.main_frame, text="🌟 Quiz Time 🌟", font=self.title_font, bg="white", fg="#006666").pack(pady=20)
+        self.question_label = tk.Label(self.main_frame, text="", font=self.question_font, bg="white", fg="#333", wraplength=500, justify="center", relief=tk.GROOVE, bd=2, padx=10, pady=10)
         self.question_label.pack(pady=(10, 20))
-
         self.choices_frame = tk.Frame(self.main_frame, bg="white")
         self.choices_frame.pack(pady=10)
-
         self.radio_buttons = []
         for i in range(4):
-            rb = tk.Radiobutton(
-                self.choices_frame,
-                text="",
-                variable=self.selected,
-                value=chr(65 + i),
-                font=self.option_font,
-                bg="white", fg="#333",
-                selectcolor="#e0f7fa",
-                activebackground="#e0f7fa",
-                anchor="w"
-            )
+            rb = tk.Radiobutton(self.choices_frame, text="", variable=self.selected, value=chr(65 + i), font=self.option_font, bg="white", fg="#333", selectcolor="#e0f7fa", activebackground="#e0f7fa", anchor="w", command=self.enable_next_button)
             rb.grid(row=i, column=0, sticky="w", pady=5, padx=20)
             self.radio_buttons.append(rb)
-
         self.progress_frame = tk.Frame(self.main_frame, bg="white")
         self.progress_frame.pack(fill=tk.X, pady=20, padx=50)
-
-        self.progress = ttk.Progressbar(
-            self.progress_frame,
-            length=400,
-            mode='determinate',
-            style="TProgressbar"
-        )
+        self.progress = ttk.Progressbar(self.progress_frame, length=400, mode='determinate', style="TProgressbar")
         self.progress.pack(side=tk.LEFT)
-
-        self.progress_label = tk.Label(
-            self.progress_frame,
-            text="0%",
-            font=("Segoe UI", 10),
-            bg="white", fg="#006666"
-        )
+        self.progress_label = tk.Label(self.progress_frame, text="0%", font=("Segoe UI", 10), bg="white", fg="#006666")
         self.progress_label.pack(side=tk.LEFT, padx=10)
-
-        self.next_button = ttk.Button(
-            self.main_frame,
-            text="Next Question →",
-            command=self.next_question,
-            style="TButton"
-        )
+        self.next_button = ttk.Button(self.main_frame, text="Next →", command=self.next_question, style="TButton", state=tk.DISABLED)
         self.next_button.pack(pady=10)
+
+    def enable_next_button(self):
+        if not self.answered:
+            self.next_button.config(state=tk.NORMAL)
 
     def update_progress(self):
         percent = (self.q_index / len(self.quizzes)) * 100
@@ -192,6 +134,8 @@ class QuizApp:
         self.progress_label.config(text=f"{int(percent)}%")
 
     def load_question(self):
+        self.answered = False
+        self.next_button.config(state=tk.DISABLED)
         if self.q_index < len(self.quizzes):
             question, choices, _ = self.quizzes[self.q_index]
             self.question_label.config(text=f"Q{self.q_index + 1}: {question}")
@@ -203,25 +147,27 @@ class QuizApp:
             self.update_progress()
             if self.q_index == len(self.quizzes) - 1:
                 self.next_button.config(text="Finish Quiz →")
-            else:
-                self.next_button.config(text="Next Question →")
 
     def next_question(self):
         if not self.selected.get():
             messagebox.showwarning("No selection", "Please choose an answer before continuing.")
             return
-        _, _, correct = self.quizzes[self.q_index]
-        user_answer = self.selected.get().upper()
-        if user_answer == correct:
-            self.score += 1
-            self.play_sound('correct')
+        if not self.answered:
+            _, _, correct = self.quizzes[self.q_index]
+            user_answer = self.selected.get().upper()
+            if user_answer == correct:
+                self.score += 1
+                self.play_sound('correct')
+            else:
+                self.play_sound('wrong')
+            self.answered = True
+            self.next_button.config(text="Next →" if self.q_index < len(self.quizzes) - 1 else "Finish Quiz →")
         else:
-            self.play_sound('wrong')
-        self.q_index += 1
-        if self.q_index < len(self.quizzes):
-            self.load_question()
-        else:
-            self.show_score()
+            self.q_index += 1
+            if self.q_index < len(self.quizzes):
+                self.load_question()
+            else:
+                self.show_score()
 
     def play_sound(self, sound_type):
         if sound_type == 'background':
