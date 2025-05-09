@@ -86,15 +86,22 @@ class QuizApp:
     def create_styles(self):
         self.style = ttk.Style()
         self.style.configure("TProgressbar", thickness=15, troughcolor="#e0f7fa", background="#00acc1")
-        self.style.configure("TButton", font=("Segoe UI", 12, "bold"), padding=8, background="#00838f", foreground="white")
-        self.style.map("TButton", background=[("active", "#006064"), ("pressed", "#004d40")])
-        self.style.configure("Black.TButton", font=("Segoe UI", 12, "bold"), padding=8, foreground="black")
+        
+        # Configure button style for a smaller but visible button
+        self.style.configure("Small.TButton", 
+                           font=("Segoe UI", 12, "bold"),
+                           padding=(15, 5),  # Reduced padding
+                           foreground="black",
+                           background="#00838f")
+        self.style.map("Small.TButton",
+                      background=[("active", "#006064"), ("pressed", "#004d40")],
+                      foreground=[("active", "black"), ("pressed", "black")])
 
     def create_welcome_screen(self):
         self.welcome_frame = tk.Frame(self.canvas, bg="white", bd=2, relief=tk.RIDGE)
         self.canvas.create_window(300, 250, window=self.welcome_frame, width=400, height=300)
         tk.Label(self.welcome_frame, text="Welcome to Maangas naw Quiz!", font=self.title_font, bg="white", fg="#006666").pack(pady=30)
-        start_button = ttk.Button(self.welcome_frame, text="Start Game", command=self.start_game, style="Black.TButton")
+        start_button = ttk.Button(self.welcome_frame, text="Start Game", command=self.start_game, style="Small.TButton")
         start_button.pack(pady=10)
 
     def start_game(self):
@@ -105,23 +112,41 @@ class QuizApp:
     def create_quiz_interface(self):
         self.main_frame = tk.Frame(self.canvas, bg="white", bd=2, relief=tk.RIDGE)
         self.canvas.create_window(300, 250, window=self.main_frame, width=550, height=450)
+        
         tk.Label(self.main_frame, text="🌟 Quiz Time 🌟", font=self.title_font, bg="white", fg="#006666").pack(pady=20)
-        self.question_label = tk.Label(self.main_frame, text="", font=self.question_font, bg="white", fg="#333", wraplength=500, justify="center", relief=tk.GROOVE, bd=2, padx=10, pady=10)
+        
+        self.question_label = tk.Label(self.main_frame, text="", font=self.question_font, bg="white", fg="#333", 
+                                     wraplength=500, justify="center", relief=tk.GROOVE, bd=2, padx=10, pady=10)
         self.question_label.pack(pady=(10, 20))
+        
         self.choices_frame = tk.Frame(self.main_frame, bg="white")
         self.choices_frame.pack(pady=10)
+        
         self.radio_buttons = []
         for i in range(4):
-            rb = tk.Radiobutton(self.choices_frame, text="", variable=self.selected, value=chr(65 + i), font=self.option_font, bg="white", fg="#333", selectcolor="#e0f7fa", activebackground="#e0f7fa", anchor="w", command=self.enable_next_button)
+            rb = tk.Radiobutton(self.choices_frame, text="", variable=self.selected, value=chr(65 + i), 
+                              font=self.option_font, bg="white", fg="#333", selectcolor="#e0f7fa", 
+                              activebackground="#e0f7fa", anchor="w", command=self.enable_next_button)
             rb.grid(row=i, column=0, sticky="w", pady=5, padx=20)
             self.radio_buttons.append(rb)
+        
         self.progress_frame = tk.Frame(self.main_frame, bg="white")
         self.progress_frame.pack(fill=tk.X, pady=20, padx=50)
+        
         self.progress = ttk.Progressbar(self.progress_frame, length=400, mode='determinate', style="TProgressbar")
         self.progress.pack(side=tk.LEFT)
+        
         self.progress_label = tk.Label(self.progress_frame, text="0%", font=("Segoe UI", 10), bg="white", fg="#006666")
         self.progress_label.pack(side=tk.LEFT, padx=10)
-        self.next_button = ttk.Button(self.main_frame, text="Next →", command=self.next_question, style="TButton", state=tk.DISABLED)
+        
+        # Create a smaller Next button
+        self.next_button = ttk.Button(
+            self.main_frame,
+            text="Next",
+            style="Small.TButton",
+            command=self.next_question,
+            state=tk.DISABLED
+        )
         self.next_button.pack(pady=10)
 
     def enable_next_button(self):
@@ -146,7 +171,7 @@ class QuizApp:
                 self.radio_buttons[i].config(text="", state=tk.DISABLED)
             self.update_progress()
             if self.q_index == len(self.quizzes) - 1:
-                self.next_button.config(text="Finish Quiz →")
+                self.next_button.config(text="Finish")
 
     def next_question(self):
         if not self.selected.get():
@@ -161,7 +186,7 @@ class QuizApp:
             else:
                 self.play_sound('wrong')
             self.answered = True
-            self.next_button.config(text="Next →" if self.q_index < len(self.quizzes) - 1 else "Finish Quiz →")
+            self.next_button.config(text="Next" if self.q_index < len(self.quizzes) - 1 else "Finish")
         else:
             self.q_index += 1
             if self.q_index < len(self.quizzes):
