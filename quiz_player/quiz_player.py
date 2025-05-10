@@ -215,6 +215,8 @@ class QuizApp:
 
     def show_score(self):
         percentage = (self.score / len(self.quizzes)) * 100
+        pygame.mixer.music.stop()
+        
         if percentage == 100:
             self.play_sound('perfect')
         elif percentage >= 50:
@@ -234,9 +236,40 @@ class QuizApp:
             result_msg += "\nGood effort! 🙂"
         else:
             result_msg += "\nKeep practicing! 💪"
+        
         messagebox.showinfo("Quiz Complete", result_msg)
-        pygame.mixer.music.stop()
-        self.root.quit()
+        self.show_ending_screen()
+
+    def show_ending_screen(self):
+        self.main_frame.pack_forget()
+        
+        self.ending_frame = tk.Frame(self.canvas, bg="white", bd=2, relief=tk.RIDGE)
+        self.canvas.create_window(300, 250, window=self.ending_frame, width=500, height=400)
+        
+        tk.Label(
+            self.ending_frame, 
+            text="Thanks for playing!", 
+            font=self.title_font, 
+            bg="white", 
+            fg="#006064"
+        ).pack(pady=30)
+        
+        tk.Label(
+            self.ending_frame, 
+            text="We hope you enjoyed the quiz!", 
+            font=self.question_font, 
+            bg="white", 
+            fg="#006064"
+        ).pack(pady=10)
+        
+        tk.Button(
+            self.ending_frame, 
+            text="Exit", 
+            font=self.option_font, 
+            bg="#00acc1", 
+            fg="white", 
+            command=self.root.quit
+        ).pack(pady=20)
 
 def main():
     filename = "quiz_entries.txt"
