@@ -212,14 +212,25 @@ class QuizApp:
         if not self.selected.get() and not self.answered:
             messagebox.showwarning("No selection", "Please choose an answer before continuing.")
             return
+        
         if not self.answered:
-            _, _, correct = self.quizzes[self.q_index]
+            question, choices, correct = self.quizzes[self.q_index]
             user_answer = self.selected.get().upper()
+            
+            for i in range(4):
+                if i < len(choices):
+                    answer_char = chr(65 + i)
+                    if answer_char == correct:
+                        self.radio_buttons[i].config(fg="green", font=("Segoe UI", 12, "bold"))
+                    elif answer_char == user_answer and user_answer != correct:
+                        self.radio_buttons[i].config(fg="red", font=("Segoe UI", 12, "bold"))
+            
             if user_answer == correct:
                 self.score += 1
                 self.play_sound('correct')
             else:
                 self.play_sound('wrong')
+            
             self.answered = True
             if self.q_index == len(self.quizzes) - 1:
                 self.next_button.config(text="Finish")
