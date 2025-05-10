@@ -63,11 +63,13 @@ class QuizApp:
             if bg_music:
                 pygame.mixer.music.load(bg_music)
                 pygame.mixer.music.play(-1, 0.0)
+            # Load all required sound files
             self.audio_files['correct'] = self.load_audio("correct.mp3")
             self.audio_files['wrong'] = self.load_audio("wrong.mp3")
             self.audio_files['perfect'] = self.load_audio("perfect.mp3")
             self.audio_files['pass'] = self.load_audio("pass.mp3")
             self.audio_files['zero'] = self.load_audio("zero.mp3")
+            self.audio_files['check'] = self.load_audio("check.mp3")  # Added check sound
         except Exception as e:
             messagebox.showwarning("Audio Error", f"Could not initialize audio: {str(e)}")
 
@@ -87,10 +89,9 @@ class QuizApp:
         self.style = ttk.Style()
         self.style.configure("TProgressbar", thickness=15, troughcolor="#e0f7fa", background="#00acc1")
         
-        # Configure button style for a smaller but visible button
         self.style.configure("Small.TButton", 
                            font=("Segoe UI", 12, "bold"),
-                           padding=(15, 5),  # Reduced padding
+                           padding=(15, 5),
                            foreground="black",
                            background="#00838f")
         self.style.map("Small.TButton",
@@ -126,7 +127,8 @@ class QuizApp:
         for i in range(4):
             rb = tk.Radiobutton(self.choices_frame, text="", variable=self.selected, value=chr(65 + i), 
                               font=self.option_font, bg="white", fg="#333", selectcolor="#e0f7fa", 
-                              activebackground="#e0f7fa", anchor="w", command=self.enable_next_button)
+                              activebackground="#e0f7fa", anchor="w", 
+                              command=lambda: [self.play_sound('check'), self.enable_next_button()])  # Added sound here
             rb.grid(row=i, column=0, sticky="w", pady=5, padx=20)
             self.radio_buttons.append(rb)
         
@@ -139,7 +141,6 @@ class QuizApp:
         self.progress_label = tk.Label(self.progress_frame, text="0%", font=("Segoe UI", 10), bg="white", fg="#006666")
         self.progress_label.pack(side=tk.LEFT, padx=10)
         
-        # Create a smaller Next button
         self.next_button = ttk.Button(
             self.main_frame,
             text="Next",
@@ -200,16 +201,20 @@ class QuizApp:
                 pygame.mixer.music.play(-1, 0.0)
         else:
             if self.audio_files.get(sound_type):
-                pygame.mixer.Sound(self.audio_files[sound_type]).play()
+                sound = pygame.mixer.Sound(self.audio_files[sound_type])
+                sound.play()
 
     def show_score(self):
         percentage = (self.score / len(self.quizzes)) * 100
         if percentage == 100:
             self.play_sound('perfect')
         elif percentage >= 50:
-            self.play_sound('pass')
+            if self.score > 0:  # Only play pass sound if at least one correct answer
+                self.play_sound('pass')
         else:
-            self.play_sound('zero')
+            if self.score == 0:  # Only play zero sound if no correct answers
+                self.play_sound('zero')
+        
         result_msg = f"You got {self.score} out of {len(self.quizzes)} correct!\n"
         result_msg += f"Score: {percentage:.1f}%"
         if percentage == 100:
