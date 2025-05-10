@@ -283,33 +283,70 @@ class QuizApp:
     def show_ending_screen(self):
         self.main_frame.pack_forget()
         
-        self.ending_frame = tk.Frame(self.canvas, bg="white", bd=2, relief=tk.RIDGE)
+        self.ending_frame = tk.Frame(self.canvas, bg="white", bd=3, relief=tk.RIDGE)
         self.canvas.create_window(350, 250, window=self.ending_frame, width=500, height=400)
+        
+        top_banner = tk.Frame(self.ending_frame, bg="#00acc1", height=80)
+        top_banner.pack(fill=tk.X)
+        
+        tk.Label(
+            top_banner,
+            text="🏆",
+            font=("Segoe UI", 40),
+            bg="#00acc1",
+            fg="white"
+        ).pack(pady=10)
         
         tk.Label(
             self.ending_frame, 
             text="Thanks for playing!", 
-            font=self.title_font, 
+            font=("Segoe UI", 24, "bold"), 
             bg="white", 
             fg="#006064"
-        ).pack(pady=30)
+        ).pack(pady=20)
+        
+        separator = ttk.Separator(self.ending_frame, orient='horizontal')
+        separator.pack(fill=tk.X, padx=50, pady=5)
         
         tk.Label(
             self.ending_frame, 
             text="We hope you enjoyed the quiz!", 
-            font=self.question_font, 
+            font=("Segoe UI", 14), 
             bg="white", 
             fg="#006064"
         ).pack(pady=10)
         
-        tk.Button(
+        score_frame = tk.Frame(self.ending_frame, bg="white")
+        score_frame.pack(pady=15)
+        tk.Label(
+            score_frame,
+            text=f"Final Score: {self.score}/{len(self.quizzes)}",
+            font=("Segoe UI", 16, "bold"),
+            bg="white",
+            fg="#00acc1"
+        ).pack()
+        
+        exit_button = tk.Button(
             self.ending_frame, 
-            text="Exit", 
-            font=self.option_font, 
+            text="  Exit  ✕  ", 
+            font=("Segoe UI", 14, "bold"), 
             bg="#00acc1", 
             fg="white", 
+            activebackground="#00838f",
+            activeforeground="white",
+            relief=tk.RAISED,
+            bd=3,
             command=self.root.quit
-        ).pack(pady=20)
+        )
+        exit_button.pack(pady=25, ipadx=15, ipady=5)
+        
+        tk.Label(
+            self.ending_frame,
+            text="• • •",
+            font=("Segoe UI", 20),
+            bg="white",
+            fg="#b2ebf2"
+        ).pack(pady=10)
 
 def main():
     filename = "quiz_entries.txt"
