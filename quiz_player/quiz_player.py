@@ -164,8 +164,11 @@ class QuizApp:
             rb.grid(row=i, column=0, sticky="w", pady=5, padx=20)
             self.radio_buttons.append(rb)
         
-        self.progress_frame = tk.Frame(self.main_frame, bg="white")
-        self.progress_frame.pack(fill=tk.X, pady=20, padx=50)
+        self.progress_container = tk.Frame(self.main_frame, bg="white")
+        self.progress_container.pack(fill=tk.X, pady=20)
+        
+        self.progress_frame = tk.Frame(self.progress_container, bg="white")
+        self.progress_frame.pack(expand=True)
         
         self.progress = ttk.Progressbar(self.progress_frame, length=500, mode='determinate', style="TProgressbar")
         self.progress.pack(side=tk.LEFT)
