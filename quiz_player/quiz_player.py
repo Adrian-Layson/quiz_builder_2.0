@@ -42,7 +42,6 @@ class QuizApp:
         self.score = 0
         self.selected = tk.StringVar()
         self.answered = False
-        self.skipped_questions = []
         self.title_font = ("Segoe UI", 20, "bold")
         self.question_font = ("Segoe UI", 14, "bold")
         self.option_font = ("Segoe UI", 12)
@@ -98,14 +97,6 @@ class QuizApp:
         self.style.map("Small.TButton",
                       background=[("active", "#006064"), ("pressed", "#004d40")],
                       foreground=[("active", "black"), ("pressed", "black")])
-        
-        self.style.configure("Skip.TButton",
-                           font=("Segoe UI", 10),
-                           padding=(5, 2),
-                           foreground="black",
-                           background="#ffcc80")
-        self.style.map("Skip.TButton",
-                     background=[("active", "#ffb74d"), ("pressed", "#ffa726")])
 
     def create_welcome_screen(self):
         self.welcome_frame = tk.Frame(self.canvas, bg="#f0f8ff", bd=0, highlightthickness=0, relief=tk.FLAT)
@@ -115,7 +106,7 @@ class QuizApp:
         title_label = tk.Label(self.welcome_frame, text="🌟 Maangas na Quiz 🌟", font=("Segoe UI", 24, "bold"), bg="#f0f8ff", fg="#2c3e50")
         title_label.pack(pady=(30, 10))
         
-        subtitle_label = tk.Label(self.welcome_frame, text="Test your knowledge and have fun!!!", font=("Segoe UI", 12), bg="#f0f8ff", fg="#7f8c8d")
+        subtitle_label = tk.Label(self.welcome_frame, text="Test your knowledge and have fun!", font=("Segoe UI", 12), bg="#f0f8ff", fg="#7f8c8d")
         subtitle_label.pack(pady=(0, 30))
         
         separator = ttk.Separator(self.welcome_frame, orient='horizontal')
@@ -141,7 +132,7 @@ class QuizApp:
         
         tk.Label(footer_frame, text="v2.0", font=("Segoe UI", 8), bg="#f0f8ff", fg="#95a5a6").pack(side=tk.RIGHT, padx=10)
         
-        self.canvas.create_text(400, 550, text="PRESS START WHEN YOU ARE READY", font=("Segoe UI", 10, "italic"), fill="#7f8c8d")
+        self.canvas.create_text(400, 550, text="Ready to challenge yourself?", font=("Segoe UI", 10, "italic"), fill="#7f8c8d")
 
     def start_game(self):
         self.welcome_frame.destroy()
@@ -156,14 +147,6 @@ class QuizApp:
         self.header_frame.pack(fill=tk.X, pady=10)
         
         tk.Label(self.header_frame, text="🌟 Quiz Time 🌟", font=self.title_font, bg="white", fg="#006666").pack(side=tk.LEFT)
-        
-        self.skip_button = ttk.Button(
-            self.header_frame,
-            text="Skip Question",
-            style="Skip.TButton",
-            command=self.skip_question
-        )
-        self.skip_button.pack(side=tk.RIGHT, padx=10)
         
         self.question_label = tk.Label(self.main_frame, text="", font=self.question_font, bg="white", fg="#333", 
                                      wraplength=700, justify="center", relief=tk.GROOVE, bd=2, padx=10, pady=10)
@@ -199,18 +182,6 @@ class QuizApp:
         )
         self.next_button.pack(pady=10)
 
-    def skip_question(self):
-        if self.q_index not in self.skipped_questions:
-            self.skipped_questions.append(self.q_index)
-        self.q_index += 1
-        if self.q_index >= len(self.quizzes):
-            if self.skipped_questions:
-                self.q_index = self.skipped_questions.pop(0)
-            else:
-                self.show_score()
-                return
-        self.load_question()
-
     def enable_next_button(self):
         if not self.answered:
             self.next_button.config(state=tk.NORMAL)
@@ -234,7 +205,7 @@ class QuizApp:
             for i in range(len(choices), 4):
                 self.radio_buttons[i].config(text="", state=tk.DISABLED)
             self.update_progress()
-            if self.q_index == len(self.quizzes) - 1 and not self.skipped_questions:
+            if self.q_index == len(self.quizzes) - 1:
                 self.next_button.config(text="Finish")
 
     def next_question(self):
@@ -242,38 +213,24 @@ class QuizApp:
             messagebox.showwarning("No selection", "Please choose an answer before continuing.")
             return
         if not self.answered:
-            _, choices, correct = self.quizzes[self.q_index]
+            _, _, correct = self.quizzes[self.q_index]
             user_answer = self.selected.get().upper()
-            
-            for i in range(4):
-                if i < len(choices):
-                    answer_char = chr(65 + i)
-                    if answer_char == correct:
-                        self.radio_buttons[i].config(fg="green", font=("Segoe UI", 12, "bold"))
-                    elif answer_char == user_answer and user_answer != correct:
-                        self.radio_buttons[i].config(fg="red", font=("Segoe UI", 12, "bold"))
-            
             if user_answer == correct:
                 self.score += 1
                 self.play_sound('correct')
             else:
                 self.play_sound('wrong')
             self.answered = True
-            if self.q_index == len(self.quizzes) - 1 and not self.skipped_questions:
+            if self.q_index == len(self.quizzes) - 1:
                 self.next_button.config(text="Finish")
             else:
                 self.next_button.config(text="Next")
         else:
-            if self.q_index in self.skipped_questions:
-                self.skipped_questions.remove(self.q_index)
             self.q_index += 1
             if self.q_index >= len(self.quizzes):
-                if self.skipped_questions:
-                    self.q_index = self.skipped_questions.pop(0)
-                else:
-                    self.show_score()
-                    return
-            self.load_question()
+                self.show_score()
+            else:
+                self.load_question()
 
     def play_sound(self, sound_type):
         if sound_type == 'background':
@@ -287,7 +244,6 @@ class QuizApp:
     def show_score(self):
         percentage = (self.score / len(self.quizzes)) * 100
         pygame.mixer.music.stop()
-        
         if percentage == 100:
             self.play_sound('perfect')
         elif percentage >= 50:
@@ -296,7 +252,6 @@ class QuizApp:
         else:
             if self.score == 0:
                 self.play_sound('zero')
-        
         result_msg = f"You got {self.score} out of {len(self.quizzes)} correct!\n"
         result_msg += f"Score: {percentage:.1f}%"
         if percentage == 100:
@@ -307,19 +262,15 @@ class QuizApp:
             result_msg += "\nGood effort! 🙂"
         else:
             result_msg += "\nKeep practicing! 💪"
-        
         messagebox.showinfo("Quiz Complete", result_msg)
         self.show_ending_screen()
 
     def show_ending_screen(self):
         self.main_frame.pack_forget()
-        
         self.ending_frame = tk.Frame(self.canvas, bg="white", bd=3, relief=tk.RIDGE)
         self.canvas.create_window(400, 300, window=self.ending_frame, width=600, height=500)
-        
         top_banner = tk.Frame(self.ending_frame, bg="#00acc1", height=80)
         top_banner.pack(fill=tk.X)
-        
         tk.Label(
             top_banner,
             text="🏆",
@@ -327,7 +278,6 @@ class QuizApp:
             bg="#00acc1",
             fg="white"
         ).pack(pady=10)
-        
         tk.Label(
             self.ending_frame, 
             text="Thanks for playing!", 
@@ -335,10 +285,8 @@ class QuizApp:
             bg="white", 
             fg="#006064"
         ).pack(pady=20)
-        
         separator = ttk.Separator(self.ending_frame, orient='horizontal')
         separator.pack(fill=tk.X, padx=50, pady=5)
-        
         tk.Label(
             self.ending_frame, 
             text="We hope you enjoyed the quiz!", 
@@ -346,7 +294,6 @@ class QuizApp:
             bg="white", 
             fg="#006064"
         ).pack(pady=10)
-        
         score_frame = tk.Frame(self.ending_frame, bg="white")
         score_frame.pack(pady=15)
         tk.Label(
@@ -356,7 +303,6 @@ class QuizApp:
             bg="white",
             fg="#00acc1"
         ).pack()
-        
         exit_button = tk.Button(
             self.ending_frame, 
             text="  Exit  ✕  ", 
@@ -370,7 +316,6 @@ class QuizApp:
             command=self.root.quit
         )
         exit_button.pack(pady=25, ipadx=15, ipady=5)
-        
         tk.Label(
             self.ending_frame,
             text="• • •",
