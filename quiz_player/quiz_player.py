@@ -33,8 +33,8 @@ class QuizApp:
     def __init__(self, root, quizzes):
         self.root = root
         self.root.title("Cool Quiz Player")
-        self.root.geometry("700x500")
-        self.canvas = tk.Canvas(root, width=700, height=500, highlightthickness=0)
+        self.root.geometry("800x600")
+        self.canvas = tk.Canvas(root, width=800, height=600, highlightthickness=0)
         self.canvas.pack(fill=tk.BOTH, expand=True)
         self.draw_gradient()
         self.quizzes = quizzes
@@ -51,10 +51,12 @@ class QuizApp:
         self.create_welcome_screen()
 
     def draw_gradient(self):
-        for i in range(500):
-            r, g, b = 0, 128 + int(i/4), 128 + int(i/8)
+        for i in range(600):
+            r = 0
+            g = min(128 + int(i/4), 255)
+            b = min(128 + int(i/8), 255)
             color = f"#{r:02x}{g:02x}{b:02x}"
-            self.canvas.create_line(0, i, 700, i, fill=color)
+            self.canvas.create_line(0, i, 800, i, fill=color)
 
     def setup_audio(self):
         try:
@@ -107,7 +109,7 @@ class QuizApp:
 
     def create_welcome_screen(self):
         self.welcome_frame = tk.Frame(self.canvas, bg="white", bd=2, relief=tk.RIDGE)
-        self.canvas.create_window(350, 250, window=self.welcome_frame, width=400, height=300)
+        self.canvas.create_window(400, 300, window=self.welcome_frame, width=450, height=350)
         tk.Label(self.welcome_frame, text="Welcome to Maangas na Quiz!", font=self.title_font, bg="white", fg="#006666").pack(pady=30)
         start_button = ttk.Button(self.welcome_frame, text="Start Game", command=self.start_game, style="Small.TButton")
         start_button.pack(pady=10)
@@ -119,7 +121,7 @@ class QuizApp:
 
     def create_quiz_interface(self):
         self.main_frame = tk.Frame(self.canvas, bg="white", bd=2, relief=tk.RIDGE)
-        self.canvas.create_window(350, 250, window=self.main_frame, width=650, height=450)
+        self.canvas.create_window(400, 300, window=self.main_frame, width=750, height=550)
         
         self.header_frame = tk.Frame(self.main_frame, bg="white")
         self.header_frame.pack(fill=tk.X, pady=10)
@@ -135,7 +137,7 @@ class QuizApp:
         self.skip_button.pack(side=tk.RIGHT, padx=10)
         
         self.question_label = tk.Label(self.main_frame, text="", font=self.question_font, bg="white", fg="#333", 
-                                     wraplength=600, justify="center", relief=tk.GROOVE, bd=2, padx=10, pady=10)
+                                     wraplength=700, justify="center", relief=tk.GROOVE, bd=2, padx=10, pady=10)
         self.question_label.pack(pady=(10, 20))
         
         self.choices_frame = tk.Frame(self.main_frame, bg="white")
@@ -153,7 +155,7 @@ class QuizApp:
         self.progress_frame = tk.Frame(self.main_frame, bg="white")
         self.progress_frame.pack(fill=tk.X, pady=20, padx=50)
         
-        self.progress = ttk.Progressbar(self.progress_frame, length=400, mode='determinate', style="TProgressbar")
+        self.progress = ttk.Progressbar(self.progress_frame, length=500, mode='determinate', style="TProgressbar")
         self.progress.pack(side=tk.LEFT)
         
         self.progress_label = tk.Label(self.progress_frame, text="0%", font=("Segoe UI", 10), bg="white", fg="#006666")
@@ -284,7 +286,7 @@ class QuizApp:
         self.main_frame.pack_forget()
         
         self.ending_frame = tk.Frame(self.canvas, bg="white", bd=3, relief=tk.RIDGE)
-        self.canvas.create_window(350, 250, window=self.ending_frame, width=500, height=400)
+        self.canvas.create_window(400, 300, window=self.ending_frame, width=600, height=500)
         
         top_banner = tk.Frame(self.ending_frame, bg="#00acc1", height=80)
         top_banner.pack(fill=tk.X)
