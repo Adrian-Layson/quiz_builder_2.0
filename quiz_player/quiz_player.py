@@ -100,7 +100,7 @@ class QuizApp:
     def create_welcome_screen(self):
         self.welcome_frame = tk.Frame(self.canvas, bg="white", bd=2, relief=tk.RIDGE)
         self.canvas.create_window(300, 250, window=self.welcome_frame, width=400, height=300)
-        tk.Label(self.welcome_frame, text="Welcome to Maangas naw Quiz!", font=self.title_font, bg="white", fg="#006666").pack(pady=30)
+        tk.Label(self.welcome_frame, text="Welcome to Maangas na Quiz!", font=self.title_font, bg="white", fg="#006666").pack(pady=30)
         start_button = ttk.Button(self.welcome_frame, text="Start Game", command=self.start_game, style="Small.TButton")
         start_button.pack(pady=10)
 
