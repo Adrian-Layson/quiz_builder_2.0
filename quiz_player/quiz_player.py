@@ -258,14 +258,14 @@ class QuizApp:
     def show_score(self):
         percentage = (self.score / len(self.quizzes)) * 100
         pygame.mixer.music.stop()
+        
         if percentage == 100:
             self.play_sound('perfect')
         elif percentage >= 50:
-            if self.score > 0:
-                self.play_sound('pass')
+            self.play_sound('pass')
         else:
-            if self.score == 0:
-                self.play_sound('zero')
+            self.play_sound('zero')
+        
         result_msg = f"You got {self.score} out of {len(self.quizzes)} correct!\n"
         result_msg += f"Score: {percentage:.1f}%"
         if percentage == 100:
@@ -276,6 +276,7 @@ class QuizApp:
             result_msg += "\nGood effort! 🙂"
         else:
             result_msg += "\nKeep practicing! 💪"
+        
         messagebox.showinfo("Quiz Complete", result_msg)
         self.show_ending_screen()
 
