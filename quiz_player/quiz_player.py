@@ -108,11 +108,40 @@ class QuizApp:
                      background=[("active", "#ffb74d"), ("pressed", "#ffa726")])
 
     def create_welcome_screen(self):
-        self.welcome_frame = tk.Frame(self.canvas, bg="white", bd=2, relief=tk.RIDGE)
-        self.canvas.create_window(400, 300, window=self.welcome_frame, width=450, height=350)
-        tk.Label(self.welcome_frame, text="Welcome to Maangas na Quiz!", font=self.title_font, bg="white", fg="#006666").pack(pady=30)
-        start_button = ttk.Button(self.welcome_frame, text="Start Game", command=self.start_game, style="Small.TButton")
-        start_button.pack(pady=10)
+        self.welcome_frame = tk.Frame(self.canvas, bg="#f0f8ff", bd=0, highlightthickness=0, relief=tk.FLAT)
+        self.canvas.create_window(400, 300, window=self.welcome_frame, width=500, height=400, tags="welcome")
+        self.canvas.create_rectangle(350, 250, 450, 350, fill="#d3d3d3", outline="", tags="shadow")
+        
+        title_label = tk.Label(self.welcome_frame, text="🌟 Maangas na Quiz 🌟", font=("Segoe UI", 24, "bold"), bg="#f0f8ff", fg="#2c3e50")
+        title_label.pack(pady=(30, 10))
+        
+        subtitle_label = tk.Label(self.welcome_frame, text="Test your knowledge and have fun!!!", font=("Segoe UI", 12), bg="#f0f8ff", fg="#7f8c8d")
+        subtitle_label.pack(pady=(0, 30))
+        
+        separator = ttk.Separator(self.welcome_frame, orient='horizontal')
+        separator.pack(fill=tk.X, padx=50, pady=10)
+        
+        start_button = tk.Button(self.welcome_frame, text="START QUIZ", font=("Segoe UI", 14, "bold"), bg="#3498db", fg="white", activebackground="#2980b9", activeforeground="white", relief=tk.FLAT, bd=0, padx=30, pady=10, command=self.start_game)
+        start_button.pack(pady=20)
+        
+        def on_enter(e):
+            start_button['background'] = '#2980b9'
+            start_button['cursor'] = 'hand2'
+        
+        def on_leave(e):
+            start_button['background'] = '#3498db'
+        
+        start_button.bind("<Enter>", on_enter)
+        start_button.bind("<Leave>", on_leave)
+        
+        footer_frame = tk.Frame(self.welcome_frame, bg="#f0f8ff")
+        footer_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=10)
+        
+        tk.Label(footer_frame, text="• • •", font=("Segoe UI", 20), bg="#f0f8ff", fg="#bdc3c7").pack()
+        
+        tk.Label(footer_frame, text="v2.0", font=("Segoe UI", 8), bg="#f0f8ff", fg="#95a5a6").pack(side=tk.RIGHT, padx=10)
+        
+        self.canvas.create_text(400, 550, text="PRESS START WHEN YOU ARE READY", font=("Segoe UI", 10, "italic"), fill="#7f8c8d")
 
     def start_game(self):
         self.welcome_frame.destroy()
