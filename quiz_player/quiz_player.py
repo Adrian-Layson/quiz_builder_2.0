@@ -63,13 +63,12 @@ class QuizApp:
             if bg_music:
                 pygame.mixer.music.load(bg_music)
                 pygame.mixer.music.play(-1, 0.0)
-            # Load all required sound files
             self.audio_files['correct'] = self.load_audio("correct.mp3")
             self.audio_files['wrong'] = self.load_audio("wrong.mp3")
             self.audio_files['perfect'] = self.load_audio("perfect.mp3")
             self.audio_files['pass'] = self.load_audio("pass.mp3")
             self.audio_files['zero'] = self.load_audio("zero.mp3")
-            self.audio_files['check'] = self.load_audio("check.mp3")  # Added check sound
+            self.audio_files['check'] = self.load_audio("check.mp3")
         except Exception as e:
             messagebox.showwarning("Audio Error", f"Could not initialize audio: {str(e)}")
 
@@ -88,7 +87,6 @@ class QuizApp:
     def create_styles(self):
         self.style = ttk.Style()
         self.style.configure("TProgressbar", thickness=15, troughcolor="#e0f7fa", background="#00acc1")
-        
         self.style.configure("Small.TButton", 
                            font=("Segoe UI", 12, "bold"),
                            padding=(15, 5),
@@ -128,7 +126,7 @@ class QuizApp:
             rb = tk.Radiobutton(self.choices_frame, text="", variable=self.selected, value=chr(65 + i), 
                               font=self.option_font, bg="white", fg="#333", selectcolor="#e0f7fa", 
                               activebackground="#e0f7fa", anchor="w", 
-                              command=lambda: [self.play_sound('check'), self.enable_next_button()])  # Added sound here
+                              command=lambda: [self.play_sound('check'), self.enable_next_button()])
             rb.grid(row=i, column=0, sticky="w", pady=5, padx=20)
             self.radio_buttons.append(rb)
         
@@ -162,6 +160,8 @@ class QuizApp:
     def load_question(self):
         self.answered = False
         self.next_button.config(state=tk.DISABLED)
+        for rb in self.radio_buttons:
+            rb.config(fg="#333", font=self.option_font)
         if self.q_index < len(self.quizzes):
             question, choices, _ = self.quizzes[self.q_index]
             self.question_label.config(text=f"Q{self.q_index + 1}: {question}")
@@ -179,8 +179,17 @@ class QuizApp:
             messagebox.showwarning("No selection", "Please choose an answer before continuing.")
             return
         if not self.answered:
-            _, _, correct = self.quizzes[self.q_index]
+            _, choices, correct = self.quizzes[self.q_index]
             user_answer = self.selected.get().upper()
+            
+            for i in range(4):
+                if i < len(choices):
+                    answer_char = chr(65 + i)
+                    if answer_char == correct:
+                        self.radio_buttons[i].config(fg="green", font=("Segoe UI", 12, "bold"))
+                    elif answer_char == user_answer and user_answer != correct:
+                        self.radio_buttons[i].config(fg="red", font=("Segoe UI", 12, "bold"))
+            
             if user_answer == correct:
                 self.score += 1
                 self.play_sound('correct')
@@ -209,10 +218,10 @@ class QuizApp:
         if percentage == 100:
             self.play_sound('perfect')
         elif percentage >= 50:
-            if self.score > 0:  # Only play pass sound if at least one correct answer
+            if self.score > 0:
                 self.play_sound('pass')
         else:
-            if self.score == 0:  # Only play zero sound if no correct answers
+            if self.score == 0:
                 self.play_sound('zero')
         
         result_msg = f"You got {self.score} out of {len(self.quizzes)} correct!\n"
