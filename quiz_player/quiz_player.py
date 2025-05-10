@@ -33,8 +33,8 @@ class QuizApp:
     def __init__(self, root, quizzes):
         self.root = root
         self.root.title("Cool Quiz Player")
-        self.root.geometry("600x500")
-        self.canvas = tk.Canvas(root, width=600, height=500, highlightthickness=0)
+        self.root.geometry("700x500")
+        self.canvas = tk.Canvas(root, width=700, height=500, highlightthickness=0)
         self.canvas.pack(fill=tk.BOTH, expand=True)
         self.draw_gradient()
         self.quizzes = quizzes
@@ -42,6 +42,7 @@ class QuizApp:
         self.score = 0
         self.selected = tk.StringVar()
         self.answered = False
+        self.skipped_questions = []
         self.title_font = ("Segoe UI", 20, "bold")
         self.question_font = ("Segoe UI", 14, "bold")
         self.option_font = ("Segoe UI", 12)
@@ -53,7 +54,7 @@ class QuizApp:
         for i in range(500):
             r, g, b = 0, 128 + int(i/4), 128 + int(i/8)
             color = f"#{r:02x}{g:02x}{b:02x}"
-            self.canvas.create_line(0, i, 600, i, fill=color)
+            self.canvas.create_line(0, i, 700, i, fill=color)
 
     def setup_audio(self):
         try:
@@ -95,10 +96,18 @@ class QuizApp:
         self.style.map("Small.TButton",
                       background=[("active", "#006064"), ("pressed", "#004d40")],
                       foreground=[("active", "black"), ("pressed", "black")])
+        
+        self.style.configure("Skip.TButton",
+                           font=("Segoe UI", 10),
+                           padding=(5, 2),
+                           foreground="black",
+                           background="#ffcc80")
+        self.style.map("Skip.TButton",
+                     background=[("active", "#ffb74d"), ("pressed", "#ffa726")])
 
     def create_welcome_screen(self):
         self.welcome_frame = tk.Frame(self.canvas, bg="white", bd=2, relief=tk.RIDGE)
-        self.canvas.create_window(300, 250, window=self.welcome_frame, width=400, height=300)
+        self.canvas.create_window(350, 250, window=self.welcome_frame, width=400, height=300)
         tk.Label(self.welcome_frame, text="Welcome to Maangas na Quiz!", font=self.title_font, bg="white", fg="#006666").pack(pady=30)
         start_button = ttk.Button(self.welcome_frame, text="Start Game", command=self.start_game, style="Small.TButton")
         start_button.pack(pady=10)
@@ -110,12 +119,23 @@ class QuizApp:
 
     def create_quiz_interface(self):
         self.main_frame = tk.Frame(self.canvas, bg="white", bd=2, relief=tk.RIDGE)
-        self.canvas.create_window(300, 250, window=self.main_frame, width=550, height=450)
+        self.canvas.create_window(350, 250, window=self.main_frame, width=650, height=450)
         
-        tk.Label(self.main_frame, text="🌟 Quiz Time 🌟", font=self.title_font, bg="white", fg="#006666").pack(pady=20)
+        self.header_frame = tk.Frame(self.main_frame, bg="white")
+        self.header_frame.pack(fill=tk.X, pady=10)
+        
+        tk.Label(self.header_frame, text="🌟 Quiz Time 🌟", font=self.title_font, bg="white", fg="#006666").pack(side=tk.LEFT)
+        
+        self.skip_button = ttk.Button(
+            self.header_frame,
+            text="Skip Question",
+            style="Skip.TButton",
+            command=self.skip_question
+        )
+        self.skip_button.pack(side=tk.RIGHT, padx=10)
         
         self.question_label = tk.Label(self.main_frame, text="", font=self.question_font, bg="white", fg="#333", 
-                                     wraplength=500, justify="center", relief=tk.GROOVE, bd=2, padx=10, pady=10)
+                                     wraplength=600, justify="center", relief=tk.GROOVE, bd=2, padx=10, pady=10)
         self.question_label.pack(pady=(10, 20))
         
         self.choices_frame = tk.Frame(self.main_frame, bg="white")
@@ -148,6 +168,18 @@ class QuizApp:
         )
         self.next_button.pack(pady=10)
 
+    def skip_question(self):
+        if self.q_index not in self.skipped_questions:
+            self.skipped_questions.append(self.q_index)
+        self.q_index += 1
+        if self.q_index >= len(self.quizzes):
+            if self.skipped_questions:
+                self.q_index = self.skipped_questions.pop(0)
+            else:
+                self.show_score()
+                return
+        self.load_question()
+
     def enable_next_button(self):
         if not self.answered:
             self.next_button.config(state=tk.NORMAL)
@@ -171,11 +203,11 @@ class QuizApp:
             for i in range(len(choices), 4):
                 self.radio_buttons[i].config(text="", state=tk.DISABLED)
             self.update_progress()
-            if self.q_index == len(self.quizzes) - 1:
+            if self.q_index == len(self.quizzes) - 1 and not self.skipped_questions:
                 self.next_button.config(text="Finish")
 
     def next_question(self):
-        if not self.selected.get():
+        if not self.selected.get() and not self.answered:
             messagebox.showwarning("No selection", "Please choose an answer before continuing.")
             return
         if not self.answered:
@@ -196,13 +228,21 @@ class QuizApp:
             else:
                 self.play_sound('wrong')
             self.answered = True
-            self.next_button.config(text="Next" if self.q_index < len(self.quizzes) - 1 else "Finish")
-        else:
-            self.q_index += 1
-            if self.q_index < len(self.quizzes):
-                self.load_question()
+            if self.q_index == len(self.quizzes) - 1 and not self.skipped_questions:
+                self.next_button.config(text="Finish")
             else:
-                self.show_score()
+                self.next_button.config(text="Next")
+        else:
+            if self.q_index in self.skipped_questions:
+                self.skipped_questions.remove(self.q_index)
+            self.q_index += 1
+            if self.q_index >= len(self.quizzes):
+                if self.skipped_questions:
+                    self.q_index = self.skipped_questions.pop(0)
+                else:
+                    self.show_score()
+                    return
+            self.load_question()
 
     def play_sound(self, sound_type):
         if sound_type == 'background':
@@ -244,7 +284,7 @@ class QuizApp:
         self.main_frame.pack_forget()
         
         self.ending_frame = tk.Frame(self.canvas, bg="white", bd=2, relief=tk.RIDGE)
-        self.canvas.create_window(300, 250, window=self.ending_frame, width=500, height=400)
+        self.canvas.create_window(350, 250, window=self.ending_frame, width=500, height=400)
         
         tk.Label(
             self.ending_frame, 
